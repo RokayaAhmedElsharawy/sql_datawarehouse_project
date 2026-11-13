@@ -12,6 +12,7 @@ GO
   
 CREATE TABLE silver.[crm_prd_info](
 	[prd_id] [int] NULL,
+	[category_id] [varchar] (50),
 	[prd_key] [nvarchar](60) ,
 	[prd_nm] [nvarchar](60) ,
 	[prd_cost] [int] ,

@@ -78,4 +78,16 @@ end as sls_price
 from bronze.crm_sales_info
 
 
-
+INSERT INTO silver.erp_cust_info(cust_id,BDATE,gender)
+select 
+case when cust_id like 'NAS%' THEN SUBSTRING(cust_id,4,LEN(cust_id)) 
+    ELSE cust_id
+end as cust_id,
+case when BDATE > GETDATE() THEN NULL  
+     else BDATE  
+	 end as BDATE ,
+case when UPPER(TRIM(gender)) in ('F','FEMALE') then 'Female'
+     when UPPER(TRIM(gender)) in ('M','MALE') then 'Male'
+	 ELSE 'n/a'
+end as gender
+from bronze.erp_cust_info

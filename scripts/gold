@@ -1,0 +1,47 @@
+-- customer data model
+create view gold_dim_customer as 
+select row_number() over(order by cst_id ) as cust_surrogate_key ,
+crm_cust.cst_id,crm_cust.cst_key,crm_cust.cst_firstname,
+crm_cust.cst_lastname,crm_cust.cst_maritalstatus,erp_cust_loc.country,
+case when crm_cust.cst_gender !='n/a' then crm_cust.cst_gender
+  else coalesce (erp_cust.gender,'n/a')
+  End as new_gender ,crm_cust.cst_create_date,
+crm_cust.dwh_created_date
+,erp_cust.BDATE
+from silver.crm_cust_info  as crm_cust
+left join silver.erp_cust_info  as erp_cust
+on crm_cust.cst_key=erp_cust.cust_id
+left join silver.erp_customer_locations as erp_cust_loc
+on crm_cust.cst_key=erp_cust_loc.cust_id
+
+select * from gold_dim_customer
+
+
+-- product data model
+create view dim_product as 
+select Row_Number() over(order by crm_product.prd_start_date,crm_product.prd_key) as product_surrogate_key
+,crm_product.prd_id,crm_product.prd_key,crm_product.prd_nm,
+crm_product.category_id,erp_product.category,erp_product.sub_cat,erp_product.is_maintenance,
+crm_product.prd_cost,crm_product.prd_line,crm_product.prd_start_date
+
+from silver.crm_prd_info as crm_product
+left join silver.erp_product_CAT as erp_product
+on crm_product.category_id=erp_product.product_category_id
+where prd_end_date is null
+
+select * from dim_product
+
+
+-- sales fact table
+create view gold_fact_sales as
+select silver.crm_sales_info.sls_ord_num, silver.crm_sales_info.sls_prd_key,
+silver.crm_sales_info.sls_cust_id, silver.crm_sales_info.sls_order_dt, silver.crm_sales_info.sls_ship_dt
+, silver.crm_sales_info.sls_due_dt, silver.crm_sales_info.sls_sales,
+silver.crm_sales_info.sls_quantity, silver.crm_sales_info.sls_price
+from silver.crm_sales_info left join gold_dim_customer 
+on gold_dim_customer.cst_id =silver.crm_sales_info.sls_cust_id
+left join dim_product 
+on dim_product.prd_key=silver.crm_sales_info.sls_prd_key
+
+
+select * from gold_fact_sales

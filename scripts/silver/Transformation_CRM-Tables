@@ -87,6 +87,23 @@ case when BDATE > GETDATE() THEN NULL
      else BDATE  
 	 end as BDATE ,
 case when UPPER(TRIM(gender)) in ('F','FEMALE') then 'Female'
+
+
+insert into silver.erp_customer_locations(cust_id,country)
+select Replace(cust_id,'-','') as cust_id ,
+case when Trim(country) in('USA','US') then 'United States'
+     when Trim(country) ='DE' then 'Germany'
+	 when Trim(country) is NULL or Trim(country) ='' then 'n/a'
+	 else trim(country)
+  end as country
+from bronze.erp_customer_locations
+
+
+insert into silver.erp_product_CAT (product_category_id,category,sub_cat,is_maintenance)
+select product_category_id,category,sub_cat,is_maintenance from bronze.erp_product_CAT
+
+
+
      when UPPER(TRIM(gender)) in ('M','MALE') then 'Male'
 	 ELSE 'n/a'
 end as gender
